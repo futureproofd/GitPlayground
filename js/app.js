@@ -1,5 +1,5 @@
 //Get our git object
-var gitSearcher = GitInit('futureproofd','<your accessToken>');
+var gitSearcher = GitInit('futureproofd','<your optional password>','<your user token>');
 
 //On submit, get git search results
 $('#submit-btn').click(function(){
