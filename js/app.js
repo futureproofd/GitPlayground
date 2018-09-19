@@ -11,5 +11,11 @@ $('#submit-btn').click(function(){
     }
 });
 
+$('#searchForm').keyup(function(){
+   if(!this.value){
+       $('#gitHub-links').empty();
+       $('#gitHub-favorites').empty();
+   } 
+});
 
 

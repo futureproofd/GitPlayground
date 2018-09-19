@@ -11,12 +11,12 @@
     var $body = this.$('body');
     var $gitElem = this.$('#gitHub-links');
     var $favElem = this.$('#gitHub-favorites');
+    var $searchBox = this.$('#searchForm');
     var authStr;
     var userName;
     var password;
     var LIMITER = 10;
-    //GitHub AJAX search request url:
-    var apiBaseUrl = 'https://api.github.com/';
+    //GitHub API request urls:
     var searchBaseUrl = 'https://api.github.com/search/repositories?sort=stars&order=desc&q=';
     var searchUserUrl = 'https://api.github.com/users/';
     //clear out old data before new request
@@ -35,7 +35,10 @@
         return isAuth;
     }
     
-    //Get search results from GitHub
+    /**
+    * Initial API query containing search results
+    * @param {string} [searchStr] - user provided search term
+    */
     var getSearchResults = function(searchStr) {
         //returns the entire response
         if(isAuthenticated()){
@@ -74,7 +77,10 @@
         }
     };
     
-    //Get the latest tag
+    /**
+    * Another iterative async query to get latest tag per rep
+    * @param {Object} [result] - the initial repo from ajax response
+    */
     var appendLatestTag = function(result){
         if(result){
             for(var i = 0; i < LIMITER; i++){
@@ -113,8 +119,10 @@
         }
     };
     
-    
-    //check if provided user contains any matching favorites to our search results
+    /**
+    * Check if provided user contains any matching favorites to our search results
+    * @param {Object} [repoObj] - object containing useful repo properties
+    */
     var getUserFavorites = function(repoObj){
         //returns the entire response
         if(isAuthenticated() && userName){
@@ -142,8 +150,9 @@
         }
     };
        
-    
-    //Get an auth token if there wasn't already one specified
+    /**
+    * API call to GitHub to get an authorization token to perform starred operations
+    */
     var getUserAuthToken = function(){
             $.ajax({ 
                 url: 'https://api.github.com/authorizations',
@@ -159,6 +168,10 @@
             });
     };
     
+    /**
+    * API call to GitHub to add a repository to users favorite (starred) list
+    * @param {Object} [repoObj] - object containing useful repo properties
+    */
     var addToFavorites = function(repoObj){
         $.ajax({ 
             url: 'https://api.github.com/user/starred/'+repoObj.user+'/'+repoObj.repoName,
@@ -168,12 +181,16 @@
             }
         }).done(function(response) {
             console.log(response);
+            renderHTML(repoObj,true);
         }).error(function(err) {
             console.log(err);
         });  
     };
     
-    //API call to GitHub to remove a repository to users favorite (starred) list
+    /**
+    * API call to GitHub to remove a repository to users favorite (starred) list
+    * @param {Object} [repoObj] - object containing useful repo properties
+    */
     var removeFromFavorites = function(repoObj){
         $.ajax({ 
                 url: 'https://api.github.com/user/starred/'+repoObj.user+'/'+repoObj.repoName,
@@ -182,7 +199,8 @@
                     xhr.setRequestHeader("Authorization", "token " + authStr); 
                 }
             }).done(function(response) {
-                console.log(response);
+                //remove html link
+                $('#remFavLink'+repoObj.resultNum).closest('tr').remove();
             }).error(function(err) {
                 console.log(err);
             });    
@@ -199,6 +217,7 @@
         var htmlFav = '';
         var i = 0;
         
+        //begin table row
         htmlOutput+='<tr><td><a href="'+data.url+'">'+data.name+'</a></td><td>'+data.language+'</td>';
         htmlOutput+= '<td>'+data.tag+'</td>';
         
@@ -219,7 +238,6 @@
             });
         }
     };
-
         
     //do this before each query
     var clearSearchResults = function(){
@@ -227,9 +245,9 @@
       $favElem.empty();
     };
     
-    
-    /*
-    Prototype for publicly accessible method
+    /**
+    * Prototype for publicly accessible method
+    * @param {string} [data] - search term
     */
     GitInit.prototype = {
         //entry point for search queries
@@ -239,7 +257,6 @@
                 .then(appendLatestTag);
         }
     };
-    
     
     /**
     * Function constructor. Supplies Git Authentication
