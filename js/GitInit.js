@@ -1,8 +1,13 @@
 (function(global,$) {
 
-    //function constructor
-    var GitInit = function(username, password, authToken){
-        return new GitInit.init(username, password, authToken);
+    /**
+    * Function Constructor
+    * @param {string} [username] - Required for password authentication
+    * @param {string} [authToken] - Required for user authentication token access
+    * @param {string} [password] - Required for password authentication
+    */
+    var GitInit = function(username, authToken, password = ''){
+        return new GitInit.init(username, authToken, password);
     }
     
     /*
@@ -23,13 +28,18 @@
     $gitElem.text("");
     $favElem.text("");
     
+    /**
+    * Quick check on user initialization params - Ideally user already has an access token!
+    */
     var isAuthenticated = function(){
         var isAuth;
-        authStr == undefined ? isAuth = false : isAuth = true;
+        isAuth = typeof authStr == undefined ? isAuth = false : isAuth = true;
+        isAuth = typeof authStr === 'string' ? isAuth = true : isAuth = false;
         
-        if(!isAuth){
+        if(!isAuth && !authStr){
             if(password && userName){
                 getUserAuthToken();
+                isAuth = true;
             }
         }
         return isAuth;
@@ -74,6 +84,8 @@
                     alert(thrownError);
                 }
             });
+        }else{
+            alert('Please enter a username and password while initializing the git program to receive a temporary authorization token.');
         }
     };
     
@@ -154,6 +166,7 @@
     * API call to GitHub to get an authorization token to perform starred operations
     */
     var getUserAuthToken = function(){
+        var accessTokenNote = "blame futureproofd for this "+Math.random().toString
             $.ajax({ 
                 url: 'https://api.github.com/authorizations',
                 type: 'POST',
@@ -161,8 +174,9 @@
                 beforeSend: function(xhr) { 
                     var encodedLogin =  btoa(userName + ':' + password)
                     xhr.setRequestHeader("Authorization", "Basic " + encodedLogin);
+                    
                 },
-                data: '{"scopes":["public_repo","repo"],"note":"blame futureproofd for this"}'
+                data: '{"scopes":["public_repo","repo"],"note":"'+accessTokenNote+'"}'
             }).done(function(response) {
                 authStr = response.token;
             });
@@ -263,10 +277,10 @@
     * @param {string} [username] - the user to use for user-scoped queries
     * @param {Requestable.auth} [auth] - information required to authenticate to Github
     */
-    GitInit.init = function(username, password, authToken){
+    GitInit.init = function(username, authToken, passwd){
         authStr = authToken;
         userName = username;
-        password = password;
+        password = passwd;
     };
     
     //Set our prototype for access to methods
